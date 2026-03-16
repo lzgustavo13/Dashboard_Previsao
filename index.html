@@ -16,7 +16,7 @@
   --white:#ffffff;
   --bg:#f7f7f7;
   --text:#1a1a1a;
-  --muted:#999;
+  --muted:#555;
   --border:#e8e8e8;
 }
 
@@ -88,7 +88,7 @@ main{padding:28px 40px 60px;max-width:1400px;margin:0 auto}
 .fc-tbl .v{font-weight:500;color:var(--red)}
 .fc-tbl .m{color:var(--muted)}
 
-.ov-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+
 
 .fc-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
 .fc-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
@@ -121,7 +121,7 @@ footer{border-top:1px solid var(--border);padding:14px 40px;
   border:1px solid var(--border);padding:2px 8px;border-radius:10px}
 
 @media(max-width:1100px){
-  .kpi-row,.fc-strip,.ov-grid{grid-template-columns:repeat(3,1fr)}
+  .kpi-row,.fc-strip{grid-template-columns:repeat(3,1fr)}
   .main-grid,.met-grid{grid-template-columns:1fr}
 }
 </style>
@@ -220,7 +220,7 @@ footer{border-top:1px solid var(--border);padding:14px 40px;
       <span class="leg-item"><span class="ldot" style="background:var(--red)"></span>Real 2023–2024</span>
       <span class="leg-item"><span class="ldot" style="background:#1a1a1a"></span>Real 2025</span>
       <span class="leg-item"><span class="ldash" style="color:var(--red)"></span>Previsto 2025</span>
-      <span class="leg-item"><span class="ldash" style="color:#bbb"></span>Previsão 2026</span>
+      <span class="leg-item"><span class="ldash" style="color:#777"></span>Previsão 2026</span>
       <span class="leg-item"><span class="lband" style="background:rgba(200,16,46,.1)"></span>IC 95%</span>
     </div>
     <div class="chart-wrap h300"><canvas id="mainChart"></canvas></div>
@@ -236,9 +236,6 @@ footer{border-top:1px solid var(--border);padding:14px 40px;
     </div>
   </div>
 </div>
-
-<div class="sec">Todas as cidades</div>
-<div class="ov-grid" id="ovGrid"></div>
 
 <div class="sec">Acurácia dos modelos</div>
 <div class="met-grid">
@@ -266,13 +263,11 @@ footer{border-top:1px solid var(--border);padding:14px 40px;
 </main>
 
 <footer>
-  <div class="f-text">Fonte: PRF · acidentes1725.csv · 632.600 registros · 2017–2025</div>
+  <div class="f-text">Fonte: PRF Dados Abertos</div>
   <div class="f-pills">
     <span class="f-pill">SARIMA</span>
     <span class="f-pill">SARIMAX</span>
     <span class="f-pill">Prophet</span>
-    <span class="f-pill">Mann-Kendall</span>
-    <span class="f-pill">ADF · KPSS</span>
   </div>
 </footer>
 
@@ -281,7 +276,7 @@ Chart.register(window['chartjs-plugin-annotation']);
 
 const RED = '#C8102E';
 const gridCfg = {color:'rgba(0,0,0,.04)',drawBorder:false};
-const tickCfg  = {font:{size:10,family:'DM Mono'},color:'#bbb'};
+const tickCfg  = {font:{size:10,family:'DM Mono'},color:'#555'};
 
 //  2023-2024 reais 
 const H2324 = {
@@ -329,7 +324,6 @@ function buildMain(key) {
   const h = H2324[key], h25 = H2025[key], p25 = P2025[key], fc = FC26[key];
   const n0 = h.d.length, n25 = h25.d.length, n26 = fc.d.length;
 
-  // Labels: simplificar 2023-2024 para mm/yy
   const fmt0 = h.d;  // already DD/MM
   const labels = [...fmt0, ...h25.d.map(d=>d+'/25'), ...fc.d];
 
@@ -355,7 +349,7 @@ function buildMain(key) {
     data:{labels, datasets:[
       {label:'IC Hi',      data:hi,   borderWidth:0, pointRadius:0, fill:'+1', backgroundColor:'rgba(200,16,46,.08)', tension:.3},
       {label:'IC Lo',      data:lo,   borderWidth:0, pointRadius:0, fill:false, tension:.3},
-      {label:'Previsão 2026', data:pv26, borderColor:'#bbb', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:.3},
+      {label:'Previsão 2026', data:pv26, borderColor:'#777', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:.3},
       {label:'Previsto 2025', data:pv25, borderColor:RED,   borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:.3},
       {label:'Real 2025',  data:r25,  borderColor:'#1a1a1a', borderWidth:2,   pointRadius:0, pointHoverRadius:4, fill:false, tension:.3},
       {label:'Real 2023–2024', data:r0, borderColor:RED,    borderWidth:1.5, pointRadius:0, pointHoverRadius:4, fill:false, tension:.3},
@@ -375,15 +369,15 @@ function buildMain(key) {
           filter: item => item.raw!==null && !['IC Hi','IC Lo'].includes(item.dataset.label)
         },
         annotation:{annotations:{
-          y2025:{type:'line',xMin:n0-.5,xMax:n0-.5,borderColor:'rgba(0,0,0,.08)',borderWidth:1,borderDash:[3,3],
-            label:{content:'2025',enabled:true,font:{size:9,family:'DM Mono'},color:'#bbb',position:'start',yAdjust:-10}},
+          y2025:{type:'line',xMin:n0-.5,xMax:n0-.5,borderColor:'rgba(0,0,0,.15)',borderWidth:1,borderDash:[3,3],
+            label:{content:'2025',enabled:true,font:{size:9,family:'DM Mono'},color:'#555',position:'start',yAdjust:-10}},
           y2026:{type:'line',xMin:n0+n25-.5,xMax:n0+n25-.5,borderColor:'rgba(200,16,46,.2)',borderWidth:1,borderDash:[3,3],
             label:{content:'2026 →',enabled:true,font:{size:9,family:'DM Mono'},color:RED,position:'start',yAdjust:-10}}
         }}
       },
       scales:{
         x:{grid:gridCfg, ticks:{...tickCfg, maxTicksLimit:16, maxRotation:0}},
-        y:{grid:gridCfg, ticks:tickCfg, title:{display:true,text:'acidentes / período',font:{size:10},color:'#ccc'}}
+        y:{grid:gridCfg, ticks:tickCfg, title:{display:true,text:'acidentes / período',font:{size:10},color:'#555'}}
       }
     }
   });
@@ -411,55 +405,6 @@ document.querySelectorAll('.ctab').forEach(tab => {
   });
 });
 
-//  Overview mini charts
-const CITIES = ['GUARULHOS','SAO_JOSE','NOVA_IGUACU','VITORIA','CURITIBA'];
-const ovGrid = document.getElementById('ovGrid');
-
-CITIES.forEach(key => {
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.style.cssText = 'padding:14px 16px;cursor:pointer';
-  div.innerHTML = `<div class="card-title" style="font-size:11px">${NAMES[key]}</div>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${MINFO[key]}</div>
-    <div class="chart-wrap h155"><canvas id="ov_${key}"></canvas></div>`;
-  div.addEventListener('click', () => {
-    document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
-    document.querySelector(`[data-city="${key}"]`).classList.add('active');
-    active = key;
-    document.getElementById('mainTitle').textContent = NAMES[key];
-    document.getElementById('mainSub').textContent = MINFO[key] + ' · Holdout 2025 + Previsão 2026';
-    buildMain(key); buildTable(key);
-    window.scrollTo({top:300,behavior:'smooth'});
-  });
-  ovGrid.appendChild(div);
-});
-
-requestAnimationFrame(() => {
-  CITIES.forEach(key => {
-    const h=H2324[key], h25=H2025[key], fc=FC26[key];
-    const n0=h.d.length, n25=h25.d.length, n26=fc.d.length;
-    const labels = [...h.d, ...h25.d, ...fc.d];
-    const r0=[...h.v,...Array(n25+n26).fill(null)];
-    const r25=[...Array(n0).fill(null),...h25.v,...Array(n26).fill(null)]; r25[n0-1]=h.v[n0-1];
-    const pv26=[...Array(n0+n25).fill(null),...fc.v]; pv26[n0+n25-1]=h25.v[n25-1];
-    const hi=[...Array(n0+n25).fill(null),...fc.hi]; const lo=[...Array(n0+n25).fill(null),...fc.lo];
-    hi[n0+n25-1]=h25.v[n25-1]; lo[n0+n25-1]=h25.v[n25-1];
-
-    new Chart(document.getElementById(`ov_${key}`), {
-      type:'line',
-      data:{labels, datasets:[
-        {data:hi,borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:'rgba(200,16,46,.1)',tension:.3},
-        {data:lo,borderWidth:0,pointRadius:0,fill:false,tension:.3},
-        {data:pv26,borderColor:'#ccc',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,tension:.3},
-        {data:r25, borderColor:'#1a1a1a',borderWidth:1.5,pointRadius:0,fill:false,tension:.3},
-        {data:r0,  borderColor:RED,borderWidth:1.2,pointRadius:0,fill:false,tension:.3}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{enabled:false}},
-        scales:{x:{display:false},y:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:4,color:'#ccc'}}}}
-    });
-  });
-});
 
 //  MAPE chart
 new Chart(document.getElementById('mapeChart'), {
@@ -475,14 +420,14 @@ new Chart(document.getElementById('mapeChart'), {
   options:{
     responsive:true,maintainAspectRatio:false,
     plugins:{
-      legend:{position:'top',labels:{font:{size:10},boxWidth:10,color:'#666'}},
+      legend:{position:'top',labels:{font:{size:10},boxWidth:10,color:'#333'}},
       annotation:{annotations:{ref:{type:'line',yMin:25,yMax:25,
         borderColor:'rgba(200,16,46,.4)',borderWidth:1,borderDash:[3,3],
         label:{content:'25%',enabled:true,font:{size:9,family:'DM Mono'},color:RED,position:'end'}}}}
     },
     scales:{
-      x:{grid:{display:false},ticks:{font:{size:9},color:'#bbb'}},
-      y:{grid:gridCfg,ticks:tickCfg,title:{display:true,text:'MAPE (%)',font:{size:10},color:'#ccc'}}
+      x:{grid:{display:false},ticks:{font:{size:9},color:'#555'}},
+      y:{grid:gridCfg,ticks:tickCfg,title:{display:true,text:'MAPE (%)',font:{size:10},color:'#555'}}
     }
   }
 });
