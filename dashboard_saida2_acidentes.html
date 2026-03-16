@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Previsão de Acidentes · 2023–2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --red:#C8102E;
+  --red-light:#fdf0f2;
+  --white:#ffffff;
+  --bg:#f7f7f7;
+  --text:#1a1a1a;
+  --muted:#999;
+  --border:#e8e8e8;
+}
+
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+header{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 40px;height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.h-left{display:flex;align-items:center;gap:14px}
+.h-bar{width:3px;height:20px;background:var(--red);border-radius:2px;flex-shrink:0}
+.h-title{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.h-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.h-tag{font-size:10px;font-weight:600;color:var(--red);letter-spacing:.08em;
+  text-transform:uppercase;border:1px solid rgba(200,16,46,.3);padding:3px 10px;border-radius:20px}
+
+main{padding:28px 40px 60px;max-width:1400px;margin:0 auto}
+
+.sec{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;margin-top:32px;
+  display:flex;align-items:center;gap:10px}
+.sec:first-child{margin-top:0}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--white);border-radius:8px;padding:16px 18px;border:1px solid var(--border)}
+.kpi-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:8px}
+.kpi-val{font-size:22px;font-weight:300;color:var(--text);line-height:1}
+.kpi-val em{font-size:11px;font-weight:500;font-style:normal;color:var(--red);margin-left:3px}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px}
+
+.city-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.ctab{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;
+  background:var(--white);border:1px solid var(--border);color:var(--muted);transition:all .12s}
+.ctab:hover{border-color:var(--red);color:var(--red)}
+.ctab.active{background:var(--red);border-color:var(--red);color:#fff}
+
+.card{background:var(--white);border-radius:8px;padding:20px 22px;border:1px solid var(--border)}
+.card-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.card-sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+
+.chart-wrap{position:relative}
+.h300{height:300px}
+.h190{height:190px}
+.h155{height:155px}
+
+.leg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.lband{width:14px;height:7px;border-radius:2px;display:inline-block;flex-shrink:0}
+.ldash{width:18px;height:0;border-top:2px dashed currentColor;display:inline-block;flex-shrink:0}
+
+.main-grid{display:grid;grid-template-columns:1fr 270px;gap:14px;margin-bottom:14px}
+
+.fc-wrap{max-height:334px;overflow-y:auto}
+.fc-wrap::-webkit-scrollbar{width:3px}
+.fc-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.fc-tbl{width:100%;border-collapse:collapse}
+.fc-tbl th{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:#fff}
+.fc-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:11px}
+.fc-tbl tr:last-child td{border-bottom:none}
+.fc-tbl tr:hover td{background:var(--red-light)}
+.fc-tbl .v{font-weight:500;color:var(--red)}
+.fc-tbl .m{color:var(--muted)}
+
+.ov-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+
+.fc-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.fc-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.fc-city{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:6px}
+.fc-num{font-size:20px;font-weight:300;color:var(--text)}
+.fc-num em{font-size:11px;font-style:normal;color:var(--muted)}
+.fc-detail{font-size:10px;color:var(--muted);margin-top:4px;font-family:'DM Mono',monospace}
+.fc-model{font-size:10px;color:var(--red);font-weight:500;margin-top:6px}
+
+.met-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.met-table{width:100%;border-collapse:collapse}
+.met-table th{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.met-table td{padding:7px 10px;border-bottom:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:11px}
+.met-table tr:last-child td{border-bottom:none}
+.met-table tr:hover td{background:var(--bg)}
+.best td{color:var(--red)!important;font-weight:500}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;
+  font-weight:600;font-family:'DM Sans',sans-serif}
+.badge.ok{background:#fff3cd;color:#856404}
+.badge.good{background:#d4edda;color:#155724}
+
+footer{border-top:1px solid var(--border);padding:14px 40px;
+  display:flex;align-items:center;justify-content:space-between;background:var(--white)}
+.f-text{font-size:11px;color:var(--muted)}
+.f-pills{display:flex;gap:8px}
+.f-pill{font-size:10px;color:var(--muted);background:var(--bg);
+  border:1px solid var(--border);padding:2px 8px;border-radius:10px}
+
+@media(max-width:1100px){
+  .kpi-row,.fc-strip,.ov-grid{grid-template-columns:repeat(3,1fr)}
+  .main-grid,.met-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <div class="h-bar"></div>
+    <div>
+      <div class="h-title">Previsão de Acidentes por Município · Saída 2 · MVP</div>
+      <div class="h-sub">Séries Bissemaisais · 2023–2026 · SARIMA / SARIMAX / Prophet</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<div class="sec">Resumo</div>
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-label">Municípios</div>
+    <div class="kpi-val">5</div>
+    <div class="kpi-sub">Guarulhos, SJC, N.Iguaçu, VdC, Curitiba</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Horizonte previsto</div>
+    <div class="kpi-val">26<em>períodos</em></div>
+    <div class="kpi-sub">Jan – Dez 2026</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total previsto 2026</div>
+    <div class="kpi-val">2.493</div>
+    <div class="kpi-sub">Soma das 5 cidades</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Melhor MAPE</div>
+    <div class="kpi-val">15,9<em>%</em></div>
+    <div class="kpi-sub">Curitiba · SARIMAX</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Modelos testados</div>
+    <div class="kpi-val">3</div>
+    <div class="kpi-sub">SARIMA · SARIMAX · Prophet</div>
+  </div>
+</div>
+
+<div class="sec">Previsão 2026 — melhor modelo por cidade</div>
+<div class="fc-strip">
+  <div class="fc-card">
+    <div class="fc-city">Guarulhos</div>
+    <div class="fc-num">634 <em>acid.</em></div>
+    <div class="fc-detail">Média 24,4 / per</div>
+    <div class="fc-model">SARIMAX(0,1,1) · MAPE 27,2%</div>
+  </div>
+  <div class="fc-card">
+    <div class="fc-city">São José dos Campos</div>
+    <div class="fc-num">375 <em>acid.</em></div>
+    <div class="fc-detail">Média 14,4 / per</div>
+    <div class="fc-model">Prophet · MAPE 24,2%</div>
+  </div>
+  <div class="fc-card">
+    <div class="fc-city">Nova Iguaçu</div>
+    <div class="fc-num">422 <em>acid.</em></div>
+    <div class="fc-detail">Média 16,2 / per</div>
+    <div class="fc-model">Prophet · MAPE 22,4%</div>
+  </div>
+  <div class="fc-card">
+    <div class="fc-city">Vitória da Conquista</div>
+    <div class="fc-num">310 <em>acid.</em></div>
+    <div class="fc-detail">Média 11,9 / per</div>
+    <div class="fc-model">SARIMAX(0,1,2) · MAPE 25,9%</div>
+  </div>
+  <div class="fc-card">
+    <div class="fc-city">Curitiba</div>
+    <div class="fc-num">752 <em>acid.</em></div>
+    <div class="fc-detail">Média 28,9 / per</div>
+    <div class="fc-model">SARIMAX(2,1,1) · MAPE 15,9%</div>
+  </div>
+</div>
+
+<div class="sec">Série histórica e previsão</div>
+<div class="city-tabs">
+  <button class="ctab active" data-city="GUARULHOS">Guarulhos</button>
+  <button class="ctab" data-city="SAO_JOSE">São José dos Campos</button>
+  <button class="ctab" data-city="NOVA_IGUACU">Nova Iguaçu</button>
+  <button class="ctab" data-city="VITORIA">Vitória da Conquista</button>
+  <button class="ctab" data-city="CURITIBA">Curitiba</button>
+</div>
+
+<div class="main-grid">
+  <div class="card">
+    <div class="card-title" id="mainTitle">Guarulhos</div>
+    <div class="card-sub" id="mainSub">SARIMAX(0,1,1) · MAPE 27,2% · Holdout 2025 + Previsão 2026</div>
+    <div class="leg">
+      <span class="leg-item"><span class="ldot" style="background:var(--red)"></span>Real 2023–2024</span>
+      <span class="leg-item"><span class="ldot" style="background:#1a1a1a"></span>Real 2025</span>
+      <span class="leg-item"><span class="ldash" style="color:var(--red)"></span>Previsto 2025</span>
+      <span class="leg-item"><span class="ldash" style="color:#bbb"></span>Previsão 2026</span>
+      <span class="leg-item"><span class="lband" style="background:rgba(200,16,46,.1)"></span>IC 95%</span>
+    </div>
+    <div class="chart-wrap h300"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Previsão 2026</div>
+    <div class="card-sub">Período · Previsto · IC 95%</div>
+    <div class="fc-wrap">
+      <table class="fc-tbl">
+        <thead><tr><th>Período</th><th>Val.</th><th>Mín</th><th>Máx</th></tr></thead>
+        <tbody id="fcBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="sec">Todas as cidades</div>
+<div class="ov-grid" id="ovGrid"></div>
+
+<div class="sec">Acurácia dos modelos</div>
+<div class="met-grid">
+  <div class="card">
+    <div class="card-title">Melhor modelo por cidade</div>
+    <div class="card-sub">Selecionado pelo menor MAPE no holdout 2025</div>
+    <table class="met-table">
+      <thead><tr><th>Município</th><th>Modelo</th><th>MAPE%</th><th>RMSE</th><th>U-Theil</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Guarulhos</td><td>SARIMAX(0,1,1)</td><td>27,23</td><td>7,92</td><td>0,988</td><td><span class="badge ok">Mod.</span></td></tr>
+        <tr><td>S.J. Campos</td><td>Prophet</td><td>24,21</td><td>4,26</td><td>0,824</td><td><span class="badge ok">Mod.</span></td></tr>
+        <tr><td>Nova Iguaçu</td><td>Prophet</td><td>22,38</td><td>3,85</td><td>0,500</td><td><span class="badge ok">Mod.</span></td></tr>
+        <tr><td>Vit. Conquista</td><td>SARIMAX(0,1,2)</td><td>25,92</td><td>3,60</td><td>0,931</td><td><span class="badge ok">Mod.</span></td></tr>
+        <tr class="best"><td>Curitiba ★</td><td>SARIMAX(2,1,1)</td><td>15,93</td><td>5,38</td><td>0,606</td><td><span class="badge good">Bom</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">MAPE por modelo e cidade</div>
+    <div class="card-sub">Comparativo completo — menor = melhor · linha = 25%</div>
+    <div class="chart-wrap h190"><canvas id="mapeChart"></canvas></div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <div class="f-text">Fonte: PRF · acidentes1725.csv · 632.600 registros · 2017–2025</div>
+  <div class="f-pills">
+    <span class="f-pill">SARIMA</span>
+    <span class="f-pill">SARIMAX</span>
+    <span class="f-pill">Prophet</span>
+    <span class="f-pill">Mann-Kendall</span>
+    <span class="f-pill">ADF · KPSS</span>
+  </div>
+</footer>
+
+<script>
+Chart.register(window['chartjs-plugin-annotation']);
+
+const RED = '#C8102E';
+const gridCfg = {color:'rgba(0,0,0,.04)',drawBorder:false};
+const tickCfg  = {font:{size:10,family:'DM Mono'},color:'#bbb'};
+
+//  2023-2024 reais 
+const H2324 = {
+  GUARULHOS:{d:['02/01/23','16/01/23','30/01/23','13/02/23','27/02/23','13/03/23','27/03/23','10/04/23','24/04/23','08/05/23','22/05/23','05/06/23','19/06/23','03/07/23','17/07/23','31/07/23','14/08/23','28/08/23','11/09/23','25/09/23','09/10/23','23/10/23','06/11/23','20/11/23','04/12/23','18/12/23','01/01/24','15/01/24','29/01/24','12/02/24','26/02/24','11/03/24','25/03/24','08/04/24','22/04/24','06/05/24','20/05/24','03/06/24','17/06/24','01/07/24','15/07/24','29/07/24','12/08/24','26/08/24','09/09/24','23/09/24','07/10/24','21/10/24','04/11/24','18/11/24','02/12/24','16/12/24'],v:[23,25,23,24,24,33,29,30,47,26,35,38,40,38,37,31,23,33,29,30,27,32,36,34,52,30,31,43,38,27,25,36,34,42,36,32,39,38,35,40,28,33,22,40,54,45,29,33,36,35,34,28]},
+  SAO_JOSE:{d:['02/01/23','16/01/23','30/01/23','13/02/23','27/02/23','13/03/23','27/03/23','10/04/23','24/04/23','08/05/23','22/05/23','05/06/23','19/06/23','03/07/23','17/07/23','31/07/23','14/08/23','28/08/23','11/09/23','25/09/23','09/10/23','23/10/23','06/11/23','20/11/23','04/12/23','18/12/23','01/01/24','15/01/24','29/01/24','12/02/24','26/02/24','11/03/24','25/03/24','08/04/24','22/04/24','06/05/24','20/05/24','03/06/24','17/06/24','01/07/24','15/07/24','29/07/24','12/08/24','26/08/24','09/09/24','23/09/24','07/10/24','21/10/24','04/11/24','18/11/24','02/12/24','16/12/24'],v:[12,16,17,15,11,12,12,11,17,14,18,18,11,13,14,14,17,22,9,14,27,12,17,14,16,6,6,11,10,14,11,7,11,10,22,16,13,8,23,23,11,12,13,24,17,16,13,17,16,12,12,13]},
+  NOVA_IGUACU:{d:['02/01/23','16/01/23','30/01/23','13/02/23','27/02/23','13/03/23','27/03/23','10/04/23','24/04/23','08/05/23','22/05/23','05/06/23','19/06/23','03/07/23','17/07/23','31/07/23','14/08/23','28/08/23','11/09/23','25/09/23','09/10/23','23/10/23','06/11/23','20/11/23','04/12/23','18/12/23','01/01/24','15/01/24','29/01/24','12/02/24','26/02/24','11/03/24','25/03/24','08/04/24','22/04/24','06/05/24','20/05/24','03/06/24','17/06/24','01/07/24','15/07/24','29/07/24','12/08/24','26/08/24','09/09/24','23/09/24','07/10/24','21/10/24','04/11/24','18/11/24','02/12/24','16/12/24'],v:[11,5,13,7,12,11,8,18,13,21,18,13,12,12,23,19,13,15,17,16,13,19,16,11,21,13,11,9,14,14,16,5,13,13,13,16,13,19,22,26,18,20,17,21,21,16,14,9,13,18,13,23]},
+  VITORIA:{d:['02/01/23','16/01/23','30/01/23','13/02/23','27/02/23','13/03/23','27/03/23','10/04/23','24/04/23','08/05/23','22/05/23','05/06/23','19/06/23','03/07/23','17/07/23','31/07/23','14/08/23','28/08/23','11/09/23','25/09/23','09/10/23','23/10/23','06/11/23','20/11/23','04/12/23','18/12/23','01/01/24','15/01/24','29/01/24','12/02/24','26/02/24','11/03/24','25/03/24','08/04/24','22/04/24','06/05/24','20/05/24','03/06/24','17/06/24','01/07/24','15/07/24','29/07/24','12/08/24','26/08/24','09/09/24','23/09/24','07/10/24','21/10/24','04/11/24','18/11/24','02/12/24','16/12/24'],v:[9,6,12,6,11,7,12,9,10,13,4,8,13,13,6,13,15,16,13,11,15,9,11,11,14,11,14,9,7,8,15,12,10,22,16,12,14,14,11,16,14,21,20,16,12,10,9,15,12,18,16,22]},
+  CURITIBA:{d:['02/01/23','16/01/23','30/01/23','13/02/23','27/02/23','13/03/23','27/03/23','10/04/23','24/04/23','08/05/23','22/05/23','05/06/23','19/06/23','03/07/23','17/07/23','31/07/23','14/08/23','28/08/23','11/09/23','25/09/23','09/10/23','23/10/23','06/11/23','20/11/23','04/12/23','18/12/23','01/01/24','15/01/24','29/01/24','12/02/24','26/02/24','11/03/24','25/03/24','08/04/24','22/04/24','06/05/24','20/05/24','03/06/24','17/06/24','01/07/24','15/07/24','29/07/24','12/08/24','26/08/24','09/09/24','23/09/24','07/10/24','21/10/24','04/11/24','18/11/24','02/12/24','16/12/24'],v:[26,17,18,15,28,23,28,27,17,29,19,19,21,17,18,23,27,16,18,18,24,22,26,20,30,20,11,23,23,22,22,27,29,37,25,35,32,31,16,20,34,30,33,32,21,28,36,33,27,24,27,28]}
+};
+
+//  2025 real (holdout) 
+const H2025 = {
+  GUARULHOS:{d:['05/01','19/01','02/02','16/02','02/03','16/03','30/03','13/04','27/04','11/05','25/05','08/06','22/06','06/07','20/07','03/08','17/08','31/08','14/09','28/09','12/10','26/10','09/11','23/11','07/12','21/12'],v:[20,33,20,36,23,25,22,26,30,35,37,39,35,37,29,35,31,36,23,30,23,24,20,31,16,23]},
+  SAO_JOSE: {d:['12/01','26/01','09/02','23/02','09/03','23/03','06/04','20/04','04/05','18/05','01/06','15/06','29/06','13/07','27/07','10/08','24/08','07/09','21/09','05/10','19/10','02/11','16/11','30/11','14/12','28/12'],v:[7,9,14,18,15,14,9,21,13,13,14,8,18,18,14,16,16,22,16,19,17,18,16,17,17,17]},
+  NOVA_IGUACU:{d:['12/01','26/01','09/02','23/02','09/03','23/03','06/04','20/04','04/05','18/05','01/06','15/06','29/06','13/07','27/07','10/08','24/08','07/09','21/09','05/10','19/10','02/11','16/11','30/11','14/12','28/12'],v:[6,18,21,16,11,18,22,16,15,14,21,13,22,16,19,12,18,17,12,18,15,8,19,15,15,15]},
+  VITORIA:  {d:['05/01','19/01','02/02','16/02','02/03','16/03','30/03','13/04','27/04','11/05','25/05','08/06','22/06','06/07','20/07','03/08','17/08','31/08','14/09','28/09','12/10','26/10','09/11','23/11','07/12','21/12'],v:[14,10,15,10,9,16,17,13,12,16,18,17,13,17,7,7,7,12,8,10,10,12,8,13,14,11]},
+  CURITIBA: {d:['05/01','19/01','02/02','16/02','02/03','16/03','30/03','13/04','27/04','11/05','25/05','08/06','22/06','06/07','20/07','03/08','17/08','31/08','14/09','28/09','12/10','26/10','09/11','23/11','07/12','21/12'],v:[24,22,26,17,32,23,22,29,19,30,28,29,22,28,23,30,29,32,21,25,24,29,22,28,26,25]}
+};
+
+//  Previsto 2025 (melhor modelo)
+const P2025 = {
+  GUARULHOS:  {v:[23,26,28,25,23,27,28,28,28,31,29,30,25,32,28,29,23,30,28,28,28,30,28,28,30,29]},
+  SAO_JOSE:   {v:[10,14,13,14,15,12,12,14,14,16,14,14,15,15,14,14,16,16,15,16,16,15,16,16,16,13]},
+  NOVA_IGUACU:{v:[12,13,16,14,14,15,15,15,14,15,16,15,16,17,15,15,17,17,16,16,16,14,15,16,16,16]},
+  VITORIA:    {v:[10,10,9,11,9,11,8,12,10,10,9,9,12,11,14,13,13,11,11,11,12,11,13,10,12,12]},
+  CURITIBA:   {v:[22,25,30,27,30,31,28,33,28,34,33,31,30,27,25,29,34,30,30,30,31,34,30,31,33,32]}
+};
+
+//  Previsão 2026 
+const FC26 = {
+  GUARULHOS:{d:['04/01/26','18/01/26','01/02/26','15/02/26','01/03/26','15/03/26','29/03/26','12/04/26','26/04/26','10/05/26','24/05/26','07/06/26','21/06/26','05/07/26','19/07/26','02/08/26','16/08/26','30/08/26','13/09/26','27/09/26','11/10/26','25/10/26','08/11/26','22/11/26','06/12/26','20/12/26'],v:[15,21,24,21,19,24,25,25,25,28,26,27,22,29,25,26,20,27,25,25,25,27,25,25,27,26],lo:[4,9,12,9,7,12,12,12,12,15,14,14,9,15,11,12,6,13,10,11,11,13,10,10,12,11],hi:[26,33,36,33,31,36,37,37,37,41,39,40,35,42,38,40,34,41,39,40,39,42,39,40,42,41]},
+  SAO_JOSE: {d:['11/01/26','25/01/26','08/02/26','22/02/26','08/03/26','22/03/26','05/04/26','19/04/26','03/05/26','17/05/26','31/05/26','14/06/26','28/06/26','12/07/26','26/07/26','09/08/26','23/08/26','06/09/26','20/09/26','04/10/26','18/10/26','01/11/26','15/11/26','29/11/26','13/12/26','27/12/26'],v:[10,14,13,14,15,12,12,14,14,16,14,14,15,15,14,14,16,16,15,16,16,15,16,16,16,13],lo:[6,10,9,9,11,8,8,10,9,11,10,10,11,11,10,10,12,12,11,12,11,11,12,12,12,9],hi:[15,18,17,18,20,17,16,18,18,19,19,18,20,19,18,19,20,21,20,20,20,20,21,20,21,17]},
+  NOVA_IGUACU:{d:['11/01/26','25/01/26','08/02/26','22/02/26','08/03/26','22/03/26','05/04/26','19/04/26','03/05/26','17/05/26','31/05/26','14/06/26','28/06/26','12/07/26','26/07/26','09/08/26','23/08/26','06/09/26','20/09/26','04/10/26','18/10/26','01/11/26','15/11/26','29/11/26','13/12/26','27/12/26'],v:[13,14,17,15,15,16,16,16,15,16,17,16,17,18,16,16,18,18,17,17,17,15,16,17,17,17],lo:[9,10,12,11,11,12,11,11,11,12,13,12,13,13,12,12,14,14,13,13,12,10,12,13,13,13],hi:[18,18,21,20,19,21,20,20,20,20,21,21,22,22,20,21,23,23,22,22,21,19,20,21,21,22]},
+  VITORIA:  {d:['04/01/26','18/01/26','01/02/26','15/02/26','01/03/26','15/03/26','29/03/26','12/04/26','26/04/26','10/05/26','24/05/26','07/06/26','21/06/26','05/07/26','19/07/26','02/08/26','16/08/26','30/08/26','13/09/26','27/09/26','11/10/26','25/10/26','08/11/26','22/11/26','06/12/26','20/12/26'],v:[11,11,10,12,10,12,9,13,11,11,10,10,13,12,15,14,14,12,12,12,13,12,14,11,13,13],lo:[6,5,4,6,4,6,4,7,5,5,4,4,7,6,9,8,8,6,6,6,7,5,8,5,7,7],hi:[17,17,16,18,15,18,15,19,17,17,16,16,19,18,21,20,20,18,18,18,19,18,20,18,19,19]},
+  CURITIBA: {d:['04/01/26','18/01/26','01/02/26','15/02/26','01/03/26','15/03/26','29/03/26','12/04/26','26/04/26','10/05/26','24/05/26','07/06/26','21/06/26','05/07/26','19/07/26','02/08/26','16/08/26','30/08/26','13/09/26','27/09/26','11/10/26','25/10/26','08/11/26','22/11/26','06/12/26','20/12/26'],v:[21,24,29,26,29,30,27,32,27,33,32,30,29,26,24,28,33,29,29,29,30,33,29,30,32,31],lo:[9,12,17,13,17,17,13,18,14,19,18,15,15,11,10,14,18,14,14,13,14,18,13,14,16,15],hi:[33,37,42,39,42,43,40,45,41,46,46,44,43,40,39,43,47,44,44,44,45,49,44,46,48,47]}
+};
+
+const NAMES = {GUARULHOS:'Guarulhos',SAO_JOSE:'São José dos Campos',NOVA_IGUACU:'Nova Iguaçu',VITORIA:'Vitória da Conquista',CURITIBA:'Curitiba'};
+const MINFO = {GUARULHOS:'SARIMAX(0,1,1) · MAPE 27,2%',SAO_JOSE:'Prophet · MAPE 24,2%',NOVA_IGUACU:'Prophet · MAPE 22,4%',VITORIA:'SARIMAX(0,1,2) · MAPE 25,9%',CURITIBA:'SARIMAX(2,1,1) · MAPE 15,9%'};
+
+//  Gráfico principal 
+let mainInst = null;
+
+function buildMain(key) {
+  const h = H2324[key], h25 = H2025[key], p25 = P2025[key], fc = FC26[key];
+  const n0 = h.d.length, n25 = h25.d.length, n26 = fc.d.length;
+
+  // Labels: simplificar 2023-2024 para mm/yy
+  const fmt0 = h.d;  // already DD/MM
+  const labels = [...fmt0, ...h25.d.map(d=>d+'/25'), ...fc.d];
+
+  // Real 2023-2024
+  const r0 = [...h.v, ...Array(n25+n26).fill(null)];
+  // Real 2025 (conectado ao último ponto de 2024)
+  const r25 = [...Array(n0).fill(null), ...h25.v, ...Array(n26).fill(null)];
+  r25[n0-1] = h.v[n0-1];
+  // Previsto 2025 (conectado ao último ponto de 2024)
+  const pv25 = [...Array(n0).fill(null), ...p25.v, ...Array(n26).fill(null)];
+  pv25[n0-1] = h.v[n0-1];
+  // Previsão 2026 (conectado ao último real de 2025)
+  const pv26 = [...Array(n0+n25).fill(null), ...fc.v];
+  pv26[n0+n25-1] = h25.v[n25-1];
+  // IC 2026
+  const hi = [...Array(n0+n25).fill(null), ...fc.hi];
+  const lo = [...Array(n0+n25).fill(null), ...fc.lo];
+  hi[n0+n25-1] = h25.v[n25-1]; lo[n0+n25-1] = h25.v[n25-1];
+
+  if (mainInst) mainInst.destroy();
+  mainInst = new Chart(document.getElementById('mainChart'), {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'IC Hi',      data:hi,   borderWidth:0, pointRadius:0, fill:'+1', backgroundColor:'rgba(200,16,46,.08)', tension:.3},
+      {label:'IC Lo',      data:lo,   borderWidth:0, pointRadius:0, fill:false, tension:.3},
+      {label:'Previsão 2026', data:pv26, borderColor:'#bbb', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:.3},
+      {label:'Previsto 2025', data:pv25, borderColor:RED,   borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:.3},
+      {label:'Real 2025',  data:r25,  borderColor:'#1a1a1a', borderWidth:2,   pointRadius:0, pointHoverRadius:4, fill:false, tension:.3},
+      {label:'Real 2023–2024', data:r0, borderColor:RED,    borderWidth:1.5, pointRadius:0, pointHoverRadius:4, fill:false, tension:.3},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label: ctx => {
+              if(['IC Hi','IC Lo'].includes(ctx.dataset.label)||ctx.raw===null) return null;
+              return ` ${ctx.dataset.label}: ${ctx.raw}`;
+            }
+          },
+          filter: item => item.raw!==null && !['IC Hi','IC Lo'].includes(item.dataset.label)
+        },
+        annotation:{annotations:{
+          y2025:{type:'line',xMin:n0-.5,xMax:n0-.5,borderColor:'rgba(0,0,0,.08)',borderWidth:1,borderDash:[3,3],
+            label:{content:'2025',enabled:true,font:{size:9,family:'DM Mono'},color:'#bbb',position:'start',yAdjust:-10}},
+          y2026:{type:'line',xMin:n0+n25-.5,xMax:n0+n25-.5,borderColor:'rgba(200,16,46,.2)',borderWidth:1,borderDash:[3,3],
+            label:{content:'2026 →',enabled:true,font:{size:9,family:'DM Mono'},color:RED,position:'start',yAdjust:-10}}
+        }}
+      },
+      scales:{
+        x:{grid:gridCfg, ticks:{...tickCfg, maxTicksLimit:16, maxRotation:0}},
+        y:{grid:gridCfg, ticks:tickCfg, title:{display:true,text:'acidentes / período',font:{size:10},color:'#ccc'}}
+      }
+    }
+  });
+}
+
+function buildTable(key) {
+  const fc = FC26[key];
+  document.getElementById('fcBody').innerHTML = fc.d.map((d,i)=>
+    `<tr><td>${d}</td><td class="v">${fc.v[i]}</td><td class="m">${fc.lo[i]}</td><td class="m">${fc.hi[i]}</td></tr>`
+  ).join('');
+}
+
+// Tabs
+let active = 'GUARULHOS';
+buildMain(active); buildTable(active);
+
+document.querySelectorAll('.ctab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    active = tab.dataset.city;
+    document.getElementById('mainTitle').textContent = NAMES[active];
+    document.getElementById('mainSub').textContent = MINFO[active] + ' · Holdout 2025 + Previsão 2026';
+    buildMain(active); buildTable(active);
+  });
+});
+
+//  Overview mini charts
+const CITIES = ['GUARULHOS','SAO_JOSE','NOVA_IGUACU','VITORIA','CURITIBA'];
+const ovGrid = document.getElementById('ovGrid');
+
+CITIES.forEach(key => {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.cssText = 'padding:14px 16px;cursor:pointer';
+  div.innerHTML = `<div class="card-title" style="font-size:11px">${NAMES[key]}</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${MINFO[key]}</div>
+    <div class="chart-wrap h155"><canvas id="ov_${key}"></canvas></div>`;
+  div.addEventListener('click', () => {
+    document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+    document.querySelector(`[data-city="${key}"]`).classList.add('active');
+    active = key;
+    document.getElementById('mainTitle').textContent = NAMES[key];
+    document.getElementById('mainSub').textContent = MINFO[key] + ' · Holdout 2025 + Previsão 2026';
+    buildMain(key); buildTable(key);
+    window.scrollTo({top:300,behavior:'smooth'});
+  });
+  ovGrid.appendChild(div);
+});
+
+requestAnimationFrame(() => {
+  CITIES.forEach(key => {
+    const h=H2324[key], h25=H2025[key], fc=FC26[key];
+    const n0=h.d.length, n25=h25.d.length, n26=fc.d.length;
+    const labels = [...h.d, ...h25.d, ...fc.d];
+    const r0=[...h.v,...Array(n25+n26).fill(null)];
+    const r25=[...Array(n0).fill(null),...h25.v,...Array(n26).fill(null)]; r25[n0-1]=h.v[n0-1];
+    const pv26=[...Array(n0+n25).fill(null),...fc.v]; pv26[n0+n25-1]=h25.v[n25-1];
+    const hi=[...Array(n0+n25).fill(null),...fc.hi]; const lo=[...Array(n0+n25).fill(null),...fc.lo];
+    hi[n0+n25-1]=h25.v[n25-1]; lo[n0+n25-1]=h25.v[n25-1];
+
+    new Chart(document.getElementById(`ov_${key}`), {
+      type:'line',
+      data:{labels, datasets:[
+        {data:hi,borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:'rgba(200,16,46,.1)',tension:.3},
+        {data:lo,borderWidth:0,pointRadius:0,fill:false,tension:.3},
+        {data:pv26,borderColor:'#ccc',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,tension:.3},
+        {data:r25, borderColor:'#1a1a1a',borderWidth:1.5,pointRadius:0,fill:false,tension:.3},
+        {data:r0,  borderColor:RED,borderWidth:1.2,pointRadius:0,fill:false,tension:.3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{display:false},y:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:4,color:'#ccc'}}}}
+    });
+  });
+});
+
+//  MAPE chart
+new Chart(document.getElementById('mapeChart'), {
+  type:'bar',
+  data:{
+    labels:['Guarulhos','S.J. Campos','N. Iguaçu','Vit. Conquista','Curitiba'],
+    datasets:[
+      {label:'SARIMA', data:[29.07,27.95,31.39,35.55,16.89],backgroundColor:'#e8e8e8',borderRadius:3},
+      {label:'SARIMAX',data:[27.23,28.15,24.95,25.92,15.93],backgroundColor:RED,borderRadius:3},
+      {label:'Prophet',data:[31.92,24.21,22.38,29.80,20.97],backgroundColor:'#1a1a1a',borderRadius:3}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'top',labels:{font:{size:10},boxWidth:10,color:'#666'}},
+      annotation:{annotations:{ref:{type:'line',yMin:25,yMax:25,
+        borderColor:'rgba(200,16,46,.4)',borderWidth:1,borderDash:[3,3],
+        label:{content:'25%',enabled:true,font:{size:9,family:'DM Mono'},color:RED,position:'end'}}}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:9},color:'#bbb'}},
+      y:{grid:gridCfg,ticks:tickCfg,title:{display:true,text:'MAPE (%)',font:{size:10},color:'#ccc'}}
+    }
+  }
+});
+</script>
+</body>
+</html>
